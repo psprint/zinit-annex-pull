@@ -1,0 +1,37 @@
+#!/usr/bin/env zsh
+# -*- mode: sh; sh-indentation: 4; indent-tabs-mode: nil; sh-basic-offset: 4; -*-
+
+# Copyright (c) 2022 Sebastian Gniazdowski
+
+# Set the base and typically useful options
+emulate -LR zsh
+setopt extendedglob warncreateglobal typesetsilent noshortloops rcquotes ${${options[xtrace]:#off}:+xtrace}
+
+# Run as script? ZSH_SCRIPT is a Zsh 5.3 addition
+if [[ $0 != zinit-pull-handler || -n $ZSH_SCRIPT ]]; then
+    # Handle $0 according to the Zsh Plugin Standard:
+    # https://zdharma-continuum.github.io/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html
+    0=${${ZERO:-${0:#$ZSH_ARGZERO}}:-${(%):-%N}}
+    0=${${(M)0##/*}:-$PWD/$0}
+
+    # Such global variable is expected to be typeset'd -g in the plugin.zsh
+    # file. Here it's restored in case of the function being run as a script.
+    typeset -gA Plugins
+    Plugins[ZINIT_ANNEX_PULL_DIR]=${0:h}
+else
+    # TODO
+fi
+    Plugins[ZINIT_ANNEX_TMP]=$(mktemp)
+    local tmp=$Plugins[ZINIT_ANNEX_TMP] line
+    local -a lines
+    wget $2 -O $tmp
+    () { fc -p -a $tmp; lines=( $history[@] ); }
+    for line in $lines[@]; do
+        if [[ $line == (#b)zi(|nit).*[[:space:]]for[[:space:]]([[:alnum:]/]+)([[:space:]].*|(#e)) || 
+            $line == (#b)*zi(|nit)\ (light|load)\ ([[:alnum:]/]+)* ]]; then
+            if [[ $match[2] == vim/vim || $match[3] == vim/vim ]]; then
+                print got it: $line
+            fi
+        fi
+    done
+# vim:ft=zsh:tw=80:sw=4:sts=4:et:foldmarker=[[[,]]]
