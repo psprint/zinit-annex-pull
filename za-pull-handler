@@ -34,16 +34,20 @@ print -r -- $file >! $tmp-
 integer next
 local bit exts="${(j:|:)${(@)${(@Akons:|:)${ZINIT_EXTS[ice-mods]//\'\'/}}/(#s)<->-/}}"
 local searched=$3
+local -a selected
 
 for line in $lines[@]; do
     set -- "${(Z+Cn+@)line}"
     if [[ $* = (#b)*(zi(#B)(|nit)[[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)#)\
 for(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)#\
-([^[:space:]]##~(${~ZINIT[ice-list]}${~exts})))#(#b)((#B)[[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)##\
+([^[:space:]]##~((${~ZINIT[ice-list]}${~exts})([^[:space:]]#))))#(#b)((#B)[[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)##\
 $searched)(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)#\
 [^[:space:]]##)# ]]; then
         print $match[1] \\n2:$match[2] \\n3:$match[3] \\n$match
+        match=( "${${match[@]%%[[:space:]]##}##[[:space:]]##}" )
+        selected+=( "$match[1] $match[2] for $match[6]" )
     fi
 done
 
+print -rl $selected
 # vim:ft=zsh:tw=80:sw=4:sts=4:et:foldmarker=[[[,]]]
