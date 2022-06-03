@@ -60,7 +60,7 @@ local -a selected reply
 for(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)#\
 ([^[:space:]*]##~((${~ZINIT[ice-list]}${~exts})([^[:space:]]#))))#\
 ([[:space:]]##(#b)((#B)((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)##)\
-(#b)($searched))(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})[^[:space:]]#[[:space:]]##)#\
+(#b)($~searched))(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})[^[:space:]]#[[:space:]]##)#\
 [^[:space:]]##)#* ]]; then
             match=( "${(@)${match[@]%%[[:space:]]##}##[[:space:]]##}" )
             #print -rl -- "match array:" "$match[@]"
