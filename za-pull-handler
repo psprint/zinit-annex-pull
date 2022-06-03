@@ -28,9 +28,11 @@ shift 2
 wget $url -O $tmp &>/dev/null
 # Strip tags, etc.
 local file=$(<$tmp)
-# Most time consuming part – to do replace with `sed`
-local -A map=( "&lt;" "<" "&gt;" ">" )
-print -r -- ${file//(<[^>]#>|\&lt\;|\&gt\;)/$map[$match[1]]} >! $tmp-
+# Most time consuming part – replaced with `sed`
+#local -A map=( "&lt;" "<" "&gt;" ">" )
+#print -r -- ${file//(<[^>]#>|\&lt\;|\&gt\;)/$map[$match[1]]} >! $tmp-
+tr '\n' '\f' < $tmp | sed -r -e 's/<[^>]*>//gi' -e 's/\&lt\;/</gi' -e 's/\&gt\;/>/gi' -e 's/\&quot\;/"/gi' | \
+ tr '\f' '\n' > $tmp-
 +zinit-message "{auto}Preprocessing finished after: ${SECONDS}s"
 
 () { fc -p -a $tmp-; lines=( $history[@] ); }
