@@ -8,46 +8,72 @@ emulate -LR zsh
 setopt extendedglob warncreateglobal typesetsilent noshortloops rcquotes ${${options[xtrace]:#off}:+xtrace}
 typeset -gA Plugins
 
-# Handle $0 according to the Zsh Plugin Standard:
-# https://zdharma-continuum.github.io/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html
-0=${${ZERO:-${0:#$ZSH_ARGZERO}}:-${(%):-%N}}
-0=${${(M)0##/*}:-$PWD/$0}
+if [[ $0 != za-pull-handler || -n $ZSH_SCRIPT ]]; then
+    # Handle $0 according to the Zsh Plugin Standard:
+    # https://zdharma-continuum.github.io/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html
+    0=${${ZERO:-${0:#$ZSH_ARGZERO}}:-${(%):-%N}}
+    0=${${(M)0##/*}:-$PWD/$0}
+fi
 
 # Such global variable is expected to be typeset'd -g in the plugin.zsh
 # file. Here it's restored in case of the function being run as a script.
 Plugins[PULL_DIR]=${0:h}
 Plugins[PULL_TMP]=$(mktemp)
 
+local url=$2 obj
+typeset -F3 SECONDS=0
 local tmp=$Plugins[PULL_TMP] line
 local -a lines
-wget $2 -O $tmp &>/dev/null
-
+shift 2
+wget $url -O $tmp &>/dev/null
 # Strip tags, etc.
 local file=$(<$tmp)
-file=${file//<[^>]#>/}
-file=${file//\&lt\;/<}
-file=${file//\&gt\;/>}
-print -r -- $file >! $tmp-
+# Most time consuming part – to do replace with `sed`
+local -A map=( "&lt;" "<" "&gt;" ">" )
+print -r -- ${file//(<[^>]#>|\&lt\;|\&gt\;)/$map[$match[1]]} >! $tmp-
++zinit-message "{auto}Preprocessing finished after: ${SECONDS}s"
 
 () { fc -p -a $tmp-; lines=( $history[@] ); }
 
 integer next
 local bit exts="${(j:|:)${(@)${(@Akons:|:)${ZINIT_EXTS[ice-mods]//\'\'/}}/(#s)<->-/}}"
-local searched=$3
-local -a selected
+local -a selected reply
 
-for line in $lines[@]; do
-    set -- "${(Z+Cn+@)line}"
-    if [[ $* = (#b)*(zi(#B)(|nit)[[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)#)\
+.pull-get-object-with-ices-from-lines() {
+    local searched=$1 line
+    shift
+    reply=()
+    for line; do
+        line="${(j: :)${(Z+Cn+@)line}}"
+        # An interesting trick is being utilized – use
+        # of the secondary, doubling negation of Zsh patterns,
+        # which are being groundbreaking yet unknown extension
+        # to regular expressions – after the token, the one
+        # marked with unneded "*", there is the "repel" negation:
+        # "~((${ZINIT[..." which repels, blocks all values
+        # specified in it, allowing to prevent the parenthesis
+        # from matching *local* ices of the object (snippet or
+        # plugin).
+        if [[ $line = (#b)*(zi(#B)(|nit)[[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)#)\
 for(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)#\
-([^[:space:]]##~((${~ZINIT[ice-list]}${~exts})([^[:space:]]#))))#(#b)((#B)[[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)##\
-$searched)(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)#\
-[^[:space:]]##)# ]]; then
-        print $match[1] \\n2:$match[2] \\n3:$match[3] \\n$match
-        match=( "${${match[@]%%[[:space:]]##}##[[:space:]]##}" )
-        selected+=( "$match[1] $match[2] for $match[6]" )
-    fi
+([^[:space:]*]##~((${~ZINIT[ice-list]}${~exts})([^[:space:]]#))))#\
+([[:space:]]##(#b)((#B)((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)##)\
+(#b)($searched))(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})[^[:space:]]#[[:space:]]##)#\
+[^[:space:]]##)#* ]]; then
+            match=( "${(@)${match[@]%%[[:space:]]##}##[[:space:]]##}" )
+            #print -rl -- "match array:" "$match[@]"
+            reply+=( "$match[1] $match[2] for $match[3]" )
+        fi
+    done
+}
+
+SECONDS=0
+
+for obj; do
+    .pull-get-object-with-ices-from-lines $obj $lines
+    selected=( $reply )
+    +zinit-message "{auto}Found object: $selected"
 done
 
-print -rl $selected
++zinit-message "Finished in ${SECONDS}s"
 # vim:ft=zsh:tw=80:sw=4:sts=4:et:foldmarker=[[[,]]]
