@@ -45,6 +45,7 @@ local -a selected reply
     local searched=$1 line realline
     shift
     reply=()
+    searched=${searched//\*/[^/[:space:]]##}
     for line; do
         line="${(j: :)${(Z+Cn+@)line}}"
         if [[ $line == *\\ ]]; then
