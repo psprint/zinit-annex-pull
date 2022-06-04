@@ -40,14 +40,22 @@ tr '\n' '\f' < $tmp | sed -r -e 's/<[^>]*>//gi' -e 's/\&lt\;/</gi' -e 's/\&gt\;/
 integer next
 local bit exts="${(j:|:)${(@)${(@Akons:|:)${ZINIT_EXTS[ice-mods]//\'\'/}}/(#s)<->-/}}"
 local -a selected reply
+.pull-add-object() {
+    local id=$1 line=$2
+    id=${id//\//---}
+    print $line >! $ZINIT[OBJECTS_DIR]/$id
+    +zinit-message "{auto}Object $id successfully added"
+}
 
 .pull-get-object-with-ices-from-lines() {
+    selected=( $reply )
     local searched=$1 line realline
     shift
     reply=()
-    searched=${searched//\*/[^/[:space:]]##}
+    searched=${searched//\*/[[:alnum:].,:_\\+-]##}
     for line; do
         line="${(j: :)${(Z+Cn+@)line}}"
+        # History read mechanism doesn'tconnect all lines, surprisingly
         if [[ $line == *\\ ]]; then
             realline+=${line%%[[:space:]]#\\}\ 
             continue
@@ -70,19 +78,27 @@ for(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:
 (#b)($~searched))(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})[^[:space:]]#[[:space:]]##)#\
 [^[:space:]]##)#* ]]; then
             match=( "${(@)${match[@]%%[[:space:]]##}##[[:space:]]##}" )
-            #print -rl -- "match array:" "$match[@]"
-            reply+=( "$match[1] $match[2] for $match[3]" )
+            reply+=( "$match[1] $match[2] for $match[3]" $match[3])
         fi
     done
 }
 
 SECONDS=0
+integer count
+local answer id
 
 for obj; do
     .pull-get-object-with-ices-from-lines $obj $lines
     selected=( $reply )
-    +zinit-message "{auto}Found object: $selected"
+    for line id in $selected; do
+        (( count ++ ))
+        +zinit-message "{auto}Object $id ($count): $line"
+        +zinit-message "Add ($count) to the load configuration? (y/n)"
+        read -q answer
+        if [[ $answer == y ]]; then
+            .pull-add-object $id $line
+        fi
+    done
 done
-
-+zinit-message "Finished in ${SECONDS}s"
++zinit-message "Swipe finished in ${SECONDS}s"
 # vim:ft=zsh:tw=80:sw=4:sts=4:et:foldmarker=[[[,]]]

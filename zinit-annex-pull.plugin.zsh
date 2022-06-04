@@ -7,6 +7,9 @@
 0="${${ZERO:-${0:#$ZSH_ARGZERO}}:-${(%):-%N}}"
 0="${${(M)0:#/*}:-$PWD/$0}"
 
+: ${ZINIT[OBJECTS_DIR]:=$ZINIT[HOME_DIR]/objects}
+mkdir -p $ZINIT[OBJECTS_DIR]
+
 autoload za-pull-handler
 
 # An empty stub to fill the help handler fields
