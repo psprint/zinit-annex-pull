@@ -42,11 +42,17 @@ local bit exts="${(j:|:)${(@)${(@Akons:|:)${ZINIT_EXTS[ice-mods]//\'\'/}}/(#s)<-
 local -a selected reply
 
 .pull-get-object-with-ices-from-lines() {
-    local searched=$1 line
+    local searched=$1 line realline
     shift
     reply=()
     for line; do
         line="${(j: :)${(Z+Cn+@)line}}"
+        if [[ $line == *\\ ]]; then
+            realline+=${line%%[[:space:]]#\\}\ 
+            continue
+        else
+            realline=$line
+        fi
         # An interesting trick is being utilized – use
         # of the secondary, doubling negation of Zsh patterns,
         # which are being groundbreaking yet unknown extension
@@ -56,7 +62,7 @@ local -a selected reply
         # specified in it, allowing to prevent the parenthesis
         # from matching *local* ices of the object (snippet or
         # plugin).
-        if [[ $line = (#b)*(zi(#B)(|nit)[[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)#)\
+        if [[ $realline = (#b)*(zi(#B)(|nit)[[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)#)\
 for(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)#\
 ([^[:space:]*]##~((${~ZINIT[ice-list]}${~exts})([^[:space:]]#))))#\
 ([[:space:]]##(#b)((#B)((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)##)\
