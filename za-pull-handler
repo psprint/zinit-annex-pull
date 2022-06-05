@@ -57,7 +57,7 @@ local -a selected reply
         line=${(j+ +)${${(Z+Cn+@)line}//(#m)([$' \t'])/$'\ua0'}}
         # History read mechanism doesn'tconnect all lines, surprisingly
         if [[ $line == *\\ ]]; then
-            realline+=${line%%[[:space:]]#\\}\ 
+            realline+=${line%%[$' \t']#\\}\ 
             continue
         else
             realline=$line
@@ -71,14 +71,14 @@ local -a selected reply
         # specified in it, allowing to prevent the parenthesis
         # from matching *local* ices of the object (snippet or
         # plugin).
-        if [[ $realline = (#b)*(zi(#B)(|nit)[[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)#)\
-for(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)#\
-([^[:space:]*]##~((${~ZINIT[ice-list]}${~exts})([^[:space:]]#))))#\
-([[:space:]]##(#b)((#B)((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)##)\
-(#b)($~searched))(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})[^[:space:]]#[[:space:]]##)#\
-[^[:space:]]##)#* ]]; then
-            match=( "${${(@)${match[@]%%[[:space:]]##}##[[:space:]]##}//$'\ua0'/ }" )
-            reply+=( "$match[1] $match[2] for $match[3]" $match[3])
+        if [[ $realline = (#b)*(zi(#B)(|nit)[$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#)\
+for(#B)([$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#\
+([^$' \t']##~((${~ZINIT[ice-list]}${~exts})([^$' \t']#))))#\
+([$' \t']##(#b)((#B)((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)##)\
+(#b)($~searched))(#B)([$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})[^$' \t']#[$' \t']##)#\
+[^$' \t']##)#* ]]; then
+            match=( "${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }" )
+            reply+=( "$match[1] $match[2] for $match[3]" "$match[3]")
         fi
     done
 }
@@ -90,9 +90,10 @@ local answer id
 for obj; do
     .pull-get-object-with-ices-from-lines $obj $lines
     selected=( $reply )
+    +zinit-message "Found {num}$(($#reply/2)) {rst}objects{ehi}:"
     for line id in $selected; do
         (( count ++ ))
-        +zinit-message "{auto}Object $id ($count): $line"
+        +zinit-message "{nl}{auto}Object $id ($count): $line"
         +zinit-message "Add ($count) to the load configuration? (y/n)"
         read -qs answer
         if [[ $answer == y ]]; then
