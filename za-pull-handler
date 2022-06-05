@@ -54,7 +54,7 @@ local -a selected reply
     reply=()
     searched=${searched//\*/[[:alnum:].,:_\\+-]##}
     for line; do
-        line="${(j: :)${(Z+Cn+@)line}}"
+        line=${(j+ +)${${(Z+Cn+@)line}//(#m)([$' \t'])/$'\ua0'}}
         # History read mechanism doesn'tconnect all lines, surprisingly
         if [[ $line == *\\ ]]; then
             realline+=${line%%[[:space:]]#\\}\ 
@@ -77,7 +77,7 @@ for(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:
 ([[:space:]]##(#b)((#B)((--|)(${~ZINIT[ice-list]}${~exts})([^[:space:]]#)[[:space:]]##)##)\
 (#b)($~searched))(#B)([[:space:]]##((--|)(${~ZINIT[ice-list]}${~exts})[^[:space:]]#[[:space:]]##)#\
 [^[:space:]]##)#* ]]; then
-            match=( "${(@)${match[@]%%[[:space:]]##}##[[:space:]]##}" )
+            match=( "${${(@)${match[@]%%[[:space:]]##}##[[:space:]]##}//$'\ua0'/ }" )
             reply+=( "$match[1] $match[2] for $match[3]" $match[3])
         fi
     done
@@ -94,7 +94,7 @@ for obj; do
         (( count ++ ))
         +zinit-message "{auto}Object $id ($count): $line"
         +zinit-message "Add ($count) to the load configuration? (y/n)"
-        read -q answer
+        read -qs answer
         if [[ $answer == y ]]; then
             .pull-add-object $id $line
         fi
