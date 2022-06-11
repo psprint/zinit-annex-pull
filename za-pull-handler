@@ -75,7 +75,7 @@ local -a selected reply
         # specified in it, allowing to prevent the parenthesis
         # from matching *local* ices of the object (snippet or
         # plugin).
-        if [[ $realline = (#b)*(zi(#B)(|nit)[$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#)\
+        if [[ $realline = (#b)([[:space:]]##|(#s))(zi(#B)(|nit)[$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#)\
 for(#B)([$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#\
 ([^$' \t']##~((${~ZINIT[ice-list]}${~exts})([^$' \t']#))))#\
 ([$' \t']##(#b)((#B)((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)##)\
@@ -83,21 +83,21 @@ for(#B)([$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#\
 [^$' \t']##)#* ]]; then
             # 1. Trim leading and trailing whitespace
             # 2. Restore proper spaces over the non-breaking ones
-            match=( "${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }" )
+            match=( "${(@)${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }//\\[[:space:]]#(#e)}" )
             reply+=( "$match[1] $match[2] for $match[3]" "$match[3]")
-        elif [[ $realline == *[[:space:]]#(#b)zi(|nit)[[:space:]]##\
+        elif [[ $realline == ([[:space:]]##|(#s))(#b)zi(|nit)[[:space:]]##\
 (load|light)[[:space:]]##($~searched)(\#*|)  ]]; then
-            match=( "${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }" )
+            match=( "${(@)${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }//\\[[:space:]]#(#e)}" )
             prevmatch=( $match )
             ices=
             if [[ $prevline == *(#b)zi(|nit)[[:space:]]##\
 ice[[:space:]]##(*) ]]; then
-                match=( "${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }" )
+                match=( "${(@)${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }//\\[[:space:]]#(#e)}" )
                 ices=$match[2]
             fi
-            reply+=( "zinit $ices${ices:+\ }for $prevmatch[3]" "$prevmatch[3]" )
+            reply+=( "zinit $ices${ices:+ }for $prevmatch[3]" "$prevmatch[3]" )
         fi
-        if (( got_line )); then
+        if (( got_line )) && [[ $realline == ([[:space:]]##|(#s))zi(nit)[[:space:]]##ice[[:space:]]##*  ]]; then
             prevline=$realline
         fi
     done
