@@ -49,7 +49,9 @@ local -a selected reply
 
 .pull-get-object-with-ices-from-lines() {
     selected=( $reply )
-    local searched=$1 line realline
+    local -a prevmatch
+    local searched=$1 line realline prevline ices
+    integer got_line
     shift
     reply=()
     searched=${searched//\*/[[:alnum:].,:_\\+-]##}
@@ -58,8 +60,10 @@ local -a selected reply
         # History read mechanism doesn'tconnect all lines, surprisingly
         if [[ $line == *\\ ]]; then
             realline+=${line%%[$' \t']#\\}\ 
+            got_line=0
             continue
         else
+            got_line=1
             realline=$line
         fi
         # An interesting trick is being utilized – use
@@ -77,8 +81,24 @@ for(#B)([$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#\
 ([$' \t']##(#b)((#B)((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)##)\
 (#b)($~searched))(#B)([$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})[^$' \t']#[$' \t']##)#\
 [^$' \t']##)#* ]]; then
+            # 1. Trim leading and trailing whitespace
+            # 2. Restore proper spaces over the non-breaking ones
             match=( "${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }" )
             reply+=( "$match[1] $match[2] for $match[3]" "$match[3]")
+        elif [[ $realline == *[[:space:]]#(#b)zi(|nit)[[:space:]]##\
+(load|light)[[:space:]]##($~searched)(\#*|)  ]]; then
+            match=( "${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }" )
+            prevmatch=( $match )
+            ices=
+            if [[ $prevline == *(#b)zi(|nit)[[:space:]]##\
+ice[[:space:]]##(*) ]]; then
+                match=( "${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }" )
+                ices=$match[2]
+            fi
+            reply+=( "zinit $ices${ices:+\ }for $prevmatch[3]" "$prevmatch[3]" )
+        fi
+        if (( got_line )); then
+            prevline=$realline
         fi
     done
 }
