@@ -44,7 +44,7 @@ local -a selected reply
     local id=$1 line=$2
     id=${id//\//---}
     #print $line >! $ZINIT[OBJECTS_DIR]/$id
-    print $line >> ~/.zshrc
+    print -- \\n$line >> ~/.zshrc
     +zinit-message "{auto}Object $id successfully added"
 }
 
@@ -54,7 +54,7 @@ local -a selected reply
     integer got_line
     shift
     reply=()
-    searched=${searched//\*/[[:alnum:].,:_\\+/-]##}
+    searched=${searched//\*/[[:alnum:].,:_\\+/-]#}
     for line; do
         line=${(j+ +)${${(Z+Cn+@)line}//(#m)([$' \t'])/$'\ua0'}}
         # History read mechanism doesn'tconnect all lines, surprisingly
@@ -75,7 +75,7 @@ local -a selected reply
         # specified in it, allowing to prevent the parenthesis
         # from matching *local* ices of the object (snippet or
         # plugin).
-        if [[ $realline = (#b)([[:space:]]##|(#s))(zi(#B)(|nit)[$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#)\
+        if [[ $realline = ([[:space:]]##|(#s))(#b)(zi(#B)(|nit)[$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#)\
 for(#B)([$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#\
 ([^$' \t']##~((${~ZINIT[ice-list]}${~exts})([^$' \t']#))))#\
 ([$' \t']##(#b)((#B)((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)##)\
@@ -90,7 +90,7 @@ for(#B)([$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#\
             match=( "${(@)${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }//\\[[:space:]]#(#e)}" )
             prevmatch=( $match )
             ices=
-            if [[ $prevline == *(#b)zi(|nit)[[:space:]]##\
+            if [[ $prevline == ([[:space:]]##|(#s))(#b)zi(|nit)[[:space:]]##\
 ice[[:space:]]##(*) ]]; then
                 match=( "${(@)${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }//\\[[:space:]]#(#e)}" )
                 ices=$match[2]
@@ -101,7 +101,7 @@ ice[[:space:]]##(*) ]]; then
                 if [[ $prevmatch[3] != (((http|ftp)(s|)|ssh|file)://|OMZ[A-Z]#:|PZT[A-Z]#:)* ]]; then
                     ices+=${ices:+ }is-snippet
                 fi
-            # Or ensure plugin, if needed
+            # Or, ensure plugin, if needed
             else
                 if [[ $prevmatch[3] == (((http|ftp)(s|)|ssh|file)://|OMZ[A-Z]#:|PZT[A-Z]#:)* ]]; then
                     ices+=${ices:+ }is-plugin
