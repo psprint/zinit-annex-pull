@@ -86,7 +86,7 @@ for(#B)([$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#\
             match=( "${(@)${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }//\\[[:space:]]#(#e)}" )
             reply+=( "$match[1] $match[2] for $match[3]" "$match[3]")
         elif [[ $realline == ([[:space:]]##|(#s))(#b)zi(|nit)[[:space:]]##\
-(load|light)[[:space:]]##($~searched)(\#*|)  ]]; then
+(load|light|snippet)[[:space:]]##($~searched)(\#*|)  ]]; then
             match=( "${(@)${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }//\\[[:space:]]#(#e)}" )
             prevmatch=( $match )
             ices=
@@ -95,10 +95,30 @@ ice[[:space:]]##(*) ]]; then
                 match=( "${(@)${(@)${(@)${match[@]%%[$' \t']##}##[$' \t']##}//$'\ua0'/ }//\\[[:space:]]#(#e)}" )
                 ices=$match[2]
             fi
+
+            # Ensure snippet, if needed
+            if [[ $prevmatch[2] == snippet ]]; then
+                if [[ $prevmatch[3] != (((http|ftp)(s|)|ssh|file)://|OMZ[A-Z]#:|PZT[A-Z]#:)* ]]; then
+                    ices+=${ices:+ }is-snippet
+                fi
+            # Or ensure plugin, if needed
+            else
+                if [[ $prevmatch[3] == (((http|ftp)(s|)|ssh|file)://|OMZ[A-Z]#:|PZT[A-Z]#:)* ]]; then
+                    ices+=${ices:+ }is-plugin
+                fi
+            fi
+
+            # Save result
             reply+=( "zinit $ices${ices:+ }for $prevmatch[3]" "$prevmatch[3]" )
         fi
+
+        # Handle previous line variable - store it
         if (( got_line )) && [[ $realline == ([[:space:]]##|(#s))zi(nit)[[:space:]]##ice[[:space:]]##*  ]]; then
             prevline=$realline
+        fi
+        # Or clear it, if needed
+        if [[ $realline == ([[:space:]]##|(#s))zi(nit)[[:space:]]##(load|light|snippet)[[:space:]]##* ]]; then
+            prevline=
         fi
     done
 }
