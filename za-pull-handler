@@ -48,7 +48,6 @@ local -a selected reply
 }
 
 .pull-get-object-with-ices-from-lines() {
-    selected=( $reply )
     local -a prevmatch
     local searched=$1 line realline prevline ices
     integer got_line
