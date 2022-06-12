@@ -35,7 +35,7 @@ tr '\n' '\f' < $tmp | sed -r -e 's/<[^>]*>//gi' -e 's/\&lt\;/</gi' -e 's/\&gt\;/
  tr '\f' '\n' > $tmp-
 +zinit-message "{auto}Preprocessing finished after: ${SECONDS}s"
 
-() { fc -p -a $tmp-; lines=( $history[@] ); }
+() { fc -p -a $tmp-; lines=( ${(Oa)history[@]} ); }
 
 integer next
 local bit exts="${(j:|:)${(@)${(@Akons:|:)${ZINIT_EXTS[ice-mods]//\'\'/}}/(#s)<->-/}}"
@@ -64,7 +64,7 @@ local -a selected reply
             continue
         else
             got_line=1
-            realline=$line
+            realline+=$line
         fi
         # An interesting trick is being utilized – use
         # of the secondary, doubling negation of Zsh patterns,
@@ -113,13 +113,15 @@ ice[[:space:]]##(*) ]]; then
         fi
 
         # Handle previous line variable - store it
-        if (( got_line )) && [[ $realline == ([[:space:]]##|(#s))zi(nit)[[:space:]]##ice[[:space:]]##*  ]]; then
+        if [[ $realline == ([[:space:]]##|(#s))zi(nit)[[:space:]]##ice[[:space:]]##*  ]]; then
             prevline=$realline
         fi
         # Or clear it, if needed
         if [[ $realline == ([[:space:]]##|(#s))zi(nit)[[:space:]]##(load|light|snippet)[[:space:]]##* ]]; then
             prevline=
         fi
+        # Clearing of realline
+        realline=
     done
 }
 
