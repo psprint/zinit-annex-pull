@@ -43,7 +43,8 @@ local -a selected reply
 .pull-add-object() {
     local id=$1 line=$2
     id=${id//\//---}
-    print $line >! $ZINIT[OBJECTS_DIR]/$id
+    #print $line >! $ZINIT[OBJECTS_DIR]/$id
+    print $line >> ~/.zshrc
     +zinit-message "{auto}Object $id successfully added"
 }
 
@@ -53,7 +54,7 @@ local -a selected reply
     integer got_line
     shift
     reply=()
-    searched=${searched//\*/[[:alnum:].,:_\\+-]##}
+    searched=${searched//\*/[[:alnum:].,:_\\+/-]##}
     for line; do
         line=${(j+ +)${${(Z+Cn+@)line}//(#m)([$' \t'])/$'\ua0'}}
         # History read mechanism doesn'tconnect all lines, surprisingly
