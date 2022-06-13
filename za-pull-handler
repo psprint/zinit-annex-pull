@@ -19,7 +19,6 @@ fi
 # file. Here it's restored in case of the function being run as a script.
 Plugins[PULL_DIR]=${0:h}
 Plugins[PULL_TMP]=$(mktemp)
-
 local url=$2 obj
 typeset -F3 SECONDS=0
 local tmp=$Plugins[PULL_TMP] line
@@ -35,7 +34,7 @@ tr '\n' '\f' < $tmp | sed -r -e 's/<[^>]*>//gi' -e 's/\&lt\;/</gi' -e 's/\&gt\;/
  tr '\f' '\n' > $tmp-
 +zinit-message "{auto}Preprocessing finished after: ${SECONDS}s"
 
-() { fc -p -a $tmp-; lines=( ${(Oa)history[@]} ); }
+lines=( ${(f@)"$(<$tmp-)"} )
 
 integer next
 local bit exts="${(j:|:)${(@)${(@Akons:|:)${ZINIT_EXTS[ice-mods]//\'\'/}}/(#s)<->-/}}"
@@ -51,20 +50,16 @@ local -a selected reply
 .pull-get-object-with-ices-from-lines() {
     local -a prevmatch
     local searched=$1 line realline prevline ices
-    integer got_line
     shift
     reply=()
-    searched=${searched//\*/[[:alnum:].,:_\\+/-]#}
+    searched=${searched//\*/[[:alnum:].,:_\\+/@-]#}
     for line; do
         line=${(j+ +)${${(Z+Cn+@)line}//(#m)([$' \t'])/$'\ua0'}}
-        # History read mechanism doesn'tconnect all lines, surprisingly
-        if [[ $line == *\\ ]]; then
-            realline+=${line%%[$' \t']#\\}\ 
-            got_line=0
+        realline+=${line%%\\##}
+
+        # TODO: recognize quoting
+        if [[ $line == *\\ || $line == *\' && ( $line[1,-2] == [^\']#\'[^\']#\'[^\']# || $line[1,-2] == [^\']#\'[^\']#\'[^\']#\'[^\']#\'[^\']# || $line[1,-2] == [^\']## ) ]]; then
             continue
-        else
-            got_line=1
-            realline+=$line
         fi
         # An interesting trick is being utilized – use
         # of the secondary, doubling negation of Zsh patterns,
