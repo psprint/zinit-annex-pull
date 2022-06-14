@@ -23,6 +23,8 @@ zi pull https://github.com/zdharma-continuum/zinit/wiki/Github-Binary-Recipes ju
 zi pull https://github.com/zdharma-continuum/zinit/wiki/Github-Binary-Recipes \*
 ```
 
+Also an [asciinema recording](https://asciinema.org/a/ngbc71bySaipZ1AlzzMJ79IBJ) is available.
+
 # Installation
 
 ```zsh
