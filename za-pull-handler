@@ -8,6 +8,9 @@ emulate -LR zsh
 setopt extendedglob warncreateglobal typesetsilent noshortloops rcquotes ${${options[xtrace]:#off}:+xtrace}
 typeset -gA Plugins
 
+# Default pull url used to pull from when not given
+: ${ZINIT[pull-def-url]:=https://github.com/zdharma-continuum/zinit/wiki/Github-Binary-Recipes}
+
 if [[ $0 != za-pull-handler || -n $ZSH_SCRIPT ]]; then
     # Handle $0 according to the Zsh Plugin Standard:
     # https://zdharma-continuum.github.io/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html
@@ -23,8 +26,29 @@ local url=$2 obj
 typeset -F3 SECONDS=0
 local tmp=$Plugins[PULL_TMP] line
 local -a lines
-shift 2
-wget $url -O $tmp &>/dev/null
+
+# Skip the "pull" command word
+shift 1
+
+# Default URL – the "Github Binary Recipes" wiki page
+if [[ $url != ((http|ftp)(s|)|ssh|file)://* ]]; then
+    url=$ZINIT[pull-def-url]
+    +zinit-message "Using {ehi}GitHub Binary Recipes{rst} wiki page ({url}$url{rst}) as no other URL given"
+else
+    shift 1
+fi
+
+# Default object query – *
+if (( $# == 0 )); then
+    +zinit-message "Grepping for {ehi}all{rst} objects as no object pattern given"
+    set -- "*"
+fi
+
+# Download the file using wget, curl, etc.
+#wget $url -O $tmp &>/dev/null
+source $ZINIT[BIN_DIR]/zinit-install.zsh
+.zinit-download-file-stdout $url >! $tmp
+
 # Strip tags, etc.
 local file=$(<$tmp)
 # Most time consuming part – replaced with `sed`
@@ -72,7 +96,7 @@ local -a selected reply
         # plugin).
         if [[ $realline = ([[:space:]]##|(#s))(#b)(zi(#B)(|nit)[$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#)\
 for(#B)([$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)#\
-([^$' \t']##~((${~ZINIT[ice-list]}${~exts})([^$' \t']#))))#\
+([^$' \t'*]##~((${~ZINIT[ice-list]}${~exts})([^$' \t']#))))#\
 ([$' \t']##(#b)((#B)((--|)(${~ZINIT[ice-list]}${~exts})([^$' \t']#)[$' \t']##)##)\
 (#b)($~searched))(#B)([$' \t']##((--|)(${~ZINIT[ice-list]}${~exts})[^$' \t']#[$' \t']##)#\
 [^$' \t']##)#* ]]; then
