@@ -21,6 +21,12 @@ zi pull https://github.com/zdharma-continuum/zinit/wiki/Github-Binary-Recipes ju
 
 # Pull of all objects from Github Binary Recipes wiki page
 zi pull https://github.com/zdharma-continuum/zinit/wiki/Github-Binary-Recipes \*
+
+# The same as previous, as the arguments are both optional
+git pull
+
+# Similar to the previous, however pulling only one object: fzf
+git pull */fzf
 ```
 
 Also an [asciinema recording](https://asciinema.org/a/ngbc71bySaipZ1AlzzMJ79IBJ) is available.
