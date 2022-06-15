@@ -150,6 +150,7 @@ local answer id
 
 for obj; do
     .pull-get-object-with-ices-from-lines $obj $lines
+    +zinit-message "{auto}Swipe finished in ${SECONDS}s"
     selected=( $reply )
     +zinit-message "Found {num}$(($#reply/2)) {rst}objects{ehi}:"
     for line id in $selected; do
@@ -162,5 +163,5 @@ for obj; do
         fi
     done
 done
-+zinit-message "Swipe finished in ${SECONDS}s"
++zinit-message "{auto}Operation finished in ${SECONDS}s"
 # vim:ft=zsh:tw=80:sw=4:sts=4:et:foldmarker=[[[,]]]
