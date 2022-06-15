@@ -54,7 +54,7 @@ local file=$(<$tmp)
 # Most time consuming part – replaced with `sed`
 #local -A map=( "&lt;" "<" "&gt;" ">" )
 #print -r -- ${file//(<[^>]#>|\&lt\;|\&gt\;)/$map[$match[1]]} >! $tmp-
-tr '\n' '\f' < $tmp | sed -r -e 's/<[^>]*>//gi' -e 's/\&lt\;/</gi' -e 's/\&gt\;/>/gi' -e 's/\&quot\;/"/gi' | \
+tr '\n' '\f' < $tmp | sed -r -e 's/<[^>]*>//gi' -e 's/\&\s*lt\s*\;\s*/</gi' -e 's/\&\s*gt\;\s*/>/gi' -e 's/\&\s*quot\s*;/"/gi' -e "s/&\s*amp\s*;/'/gi" | \
  tr '\f' '\n' > $tmp-
 +zinit-message "{auto}Preprocessing finished after: ${SECONDS}s"
 
