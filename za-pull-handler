@@ -11,6 +11,7 @@ typeset -gA Plugins
 # Default pull url used to pull from when not given
 : ${ZINIT[pull-def-url]:=https://github.com/zdharma-continuum/zinit/wiki/Github-Binary-Recipes}
 
+# A support for running the function as script, ./za-pull-handler pull {url} {object id}
 if [[ $0 != za-pull-handler || -n $ZSH_SCRIPT ]]; then
     # Handle $0 according to the Zsh Plugin Standard:
     # https://zdharma-continuum.github.io/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html
@@ -27,10 +28,10 @@ typeset -F3 SECONDS=0
 local tmp=$Plugins[PULL_TMP] line
 local -a lines
 
-# Skip the "pull" command word
+# Skip the "pull" command word from argument list
 shift 1
 
-# Default URL – the "Github Binary Recipes" wiki page
+# Handle default URL – the "Github Binary Recipes" wiki page
 if [[ $url != ((http|ftp)(s|)|ssh|file)://* ]]; then
     url=$ZINIT[pull-def-url]
     +zinit-message "Using {ehi}GitHub Binary Recipes{rst} wiki page ({url}$url{rst}) as no other URL given"
@@ -38,13 +39,14 @@ else
     shift 1
 fi
 
-# Default object query – *
+# Handle default object query – *
 if (( $# == 0 )); then
     +zinit-message "Grepping for {ehi}all{rst} objects as no object pattern given"
     set -- "*"
 fi
 
 # Download the file using wget, curl, etc.
+# using function from zinit-install.zsh
 #wget $url -O $tmp &>/dev/null
 source $ZINIT[BIN_DIR]/zinit-install.zsh
 .zinit-download-file-stdout $url >! $tmp
@@ -71,6 +73,10 @@ local -a selected reply
     +zinit-message "{auto}Object $id successfully added"
 }
 
+# Swipes all input lines with patterns that detect `for`-syntax and
+# zinit light/load/snippet/ice commands and return the `for` syntax
+# command that uniformly loads all found objects with their ices,
+# global and private ones
 .pull-get-object-with-ices-from-lines() {
     local -a prevmatch
     local searched=$1 line realline prevline ices
@@ -148,6 +154,9 @@ SECONDS=0
 integer count
 local answer id
 
+# For every object query swipe all input lines looking for it,
+# and ask question whether the found object should be addded
+# to zshrc
 for obj; do
     .pull-get-object-with-ices-from-lines $obj $lines
     +zinit-message "{auto}Swipe finished in ${SECONDS}s"
@@ -163,5 +172,7 @@ for obj; do
         fi
     done
 done
+
+# Final timing message
 +zinit-message "{auto}Operation finished in ${SECONDS}s"
 # vim:ft=zsh:tw=80:sw=4:sts=4:et:foldmarker=[[[,]]]
