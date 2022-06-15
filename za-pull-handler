@@ -17,11 +17,11 @@ if [[ $0 != za-pull-handler || -n $ZSH_SCRIPT ]]; then
     # https://zdharma-continuum.github.io/Zsh-100-Commits-Club/Zsh-Plugin-Standard.html
     0=${${ZERO:-${0:#$ZSH_ARGZERO}}:-${(%):-%N}}
     0=${${(M)0##/*}:-$PWD/$0}
+    Plugins[PULL_DIR]=${0:h}
 fi
 
 # Such global variable is expected to be typeset'd -g in the plugin.zsh
 # file. Here it's restored in case of the function being run as a script.
-Plugins[PULL_DIR]=${0:h}
 Plugins[PULL_TMP]=$(mktemp)
 local url=$2 obj
 typeset -F3 SECONDS=0
